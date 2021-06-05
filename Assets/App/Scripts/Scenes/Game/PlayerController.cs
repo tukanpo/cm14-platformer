@@ -59,7 +59,6 @@ namespace App.Scenes.Game
         {
             _inputDirection = new Vector2(Input.GetAxisRaw("Horizontal"), 0);
 
-            
             if (Input.GetButtonDown("Jump") && _hangTimeCounter > 0f)
             {
                 _jumpRequest = true;
@@ -75,21 +74,47 @@ namespace App.Scenes.Game
 
         void FixedUpdate()
         {
+            var velocity = _rb.velocity;
+
             _isGrounded = _groundChecker.IsGrounded();
             _canCornerCorrect = _cornerCorrector.CheckCollisions();
             _onWall = _wallChecker.OnWall();
 
-            // 徐々に加速して移動
-            // _rb.AddForce(Vector2.right * (_inputDirection.x * _movementAcceleration));
-            _rb.velocity += Vector2.right * (_inputDirection.x * _movementAcceleration * Time.deltaTime) / _rb.mass;
+            _gravityScaleModifier = 1;
+
+            velocity = Move(velocity);
+            velocity = Jump(velocity);
+            velocity = WallSlide(velocity);
+            velocity = ApplyGravity(velocity);
+
+            _rb.velocity = velocity;
             
-            // 最高速に到達したら速度を保つ
-            if (Mathf.Abs(_rb.velocity.x) > _maxMoveSpeed)
+            UpdateDebugTexts();
+        }
+
+        Vector2 Move(Vector2 velocity)
+        {
+            // 徐々に加速して最高速に到達したら速度を保つ
+            velocity += Vector2.right * (_inputDirection.x * _movementAcceleration * Time.deltaTime);
+            if (Mathf.Abs(velocity.x) > _maxMoveSpeed)
             {
-                // Mathf.Sign は符号（正か 0 の場合は 1 を、負の場合は -1）を返す
-                _rb.velocity = new Vector2(Mathf.Sign(_rb.velocity.x) * _maxMoveSpeed, _rb.velocity.y);
+                velocity = new Vector2(Mathf.Sign(_rb.velocity.x) * _maxMoveSpeed, velocity.y);
             }
 
+            // 移動入力停止か方向転換で減速
+            var isChangingDirection = _inputDirection.x > 0 && velocity.x < 0 || _inputDirection.x < 0 && velocity.x > 0;
+
+            // しきい値 (0.4f) はアナログスティック入力を考慮した適当な値（多分）
+            if (Mathf.Abs(_inputDirection.x) < 0.4f || isChangingDirection)
+            {
+                velocity = new Vector2(velocity.x * (1 - Time.deltaTime * _movementDeceleration), velocity.y);
+            }
+
+            return velocity;
+        }
+
+        Vector2 Jump(Vector2 velocity)
+        {
             // ジャンプ！
             if (_isGrounded)
             {
@@ -102,21 +127,10 @@ namespace App.Scenes.Game
 
             if (_jumpRequest)
             {
-                _rb.velocity = new Vector2(_rb.velocity.x, 0);
-                _rb.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
+                velocity = new Vector2(velocity.x, 0);
+                velocity += Vector2.up * _jumpForce;
                 _hangTimeCounter = 0;
                 _jumpRequest = false;
-            }
-
-            var velocity = _rb.velocity;
-
-            var isChangingDirection = _inputDirection.x > 0 && velocity.x < 0 || _inputDirection.x < 0 && velocity.x > 0;
-
-            // しきい値(0.4f)はアナログスティック入力を考慮した適当な値
-            if (Mathf.Abs(_inputDirection.x) < 0.4f || isChangingDirection)
-            {
-                // 移動の減速処理
-                velocity = new Vector2(velocity.x * (1 - Time.deltaTime * _movementDeceleration), velocity.y);
             }
 
             // if (!_isGrounded)
@@ -128,31 +142,33 @@ namespace App.Scenes.Game
             //     }
             // }
 
-            // コーナーでのジャンプ補正
+            // コーナーでの位置補正
             if (_canCornerCorrect && !_isGrounded)
             {
-                if (!_isCornerCorrect)
-                    return;
-
-                // ここ position いじってるけど外部でやっていい？
-                _cornerCorrector.CornerCorrect();
+                if (_isCornerCorrect)
+                {
+                    // ここ transform いじってるけど外部でやっていい？
+                    _cornerCorrector.CornerCorrect();
+                }
             }
 
-            _gravityScaleModifier = 1;
-            
-            // Wall Slide
-            if (_onWall && !_isGrounded && _rb.velocity.y < 0f)
+            return velocity;
+        }
+
+        Vector2 WallSlide(Vector2 velocity)
+        {
+            if (_onWall && !_isGrounded && velocity.y < 0f)
             {
                 velocity = new Vector2(velocity.x, 0);
                 _gravityScaleModifier = 0.5f;
             }
 
-            // 重力処理
-            velocity += Vector2.up * (Physics.gravity.y * (_gravityScale * _gravityScaleModifier) * Time.deltaTime);
+            return velocity;
+        }
 
-            _rb.velocity = velocity;
-            
-            UpdateDebugTexts();
+        Vector2 ApplyGravity(Vector2 velocity)
+        {
+            return velocity + Vector2.up * (Physics.gravity.y * (_gravityScale * _gravityScaleModifier) * Time.deltaTime);
         }
 
         void UpdateDebugTexts()
