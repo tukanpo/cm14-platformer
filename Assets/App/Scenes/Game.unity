@@ -2071,7 +2071,7 @@ MonoBehaviour:
   _velocityText: {fileID: 2050439393}
   _hangtimeText: {fileID: 307440014}
   _gravityScaleText: {fileID: 435282071}
-  _gravityScale: 8.5
+  _gravityScale: 8
   _movementAcceleration: 50
   _maxMoveSpeed: 12
   _movementDeceleration: 15

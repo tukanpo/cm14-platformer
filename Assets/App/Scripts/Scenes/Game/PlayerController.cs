@@ -118,7 +118,7 @@ namespace App.Scenes.Game
             _jumpFallGravityMultiplier = 1;
             
             // ジャンプ！
-            if (_isGrounded)
+            if (_isGrounded || _onWall)
             {
                 _isJumping = false;
                 _hangTimeCounter = _hangTime;
@@ -171,6 +171,7 @@ namespace App.Scenes.Game
                 if (!_isWallSliding)
                 {
                     _isWallSliding = true;
+                    _isJumping = false;
                     _wallSlideGravityMultiplier = 0;
                     velocity = new Vector2(velocity.x, 0);
                 }
