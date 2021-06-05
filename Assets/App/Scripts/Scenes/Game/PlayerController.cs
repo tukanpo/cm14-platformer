@@ -16,33 +16,42 @@ namespace App.Scenes.Game
         [Header("Ground Check")]
         [SerializeField] public bool _isGrounded;
 
+        [Header("Wall Checker")]
+        [SerializeField] public bool _onWall;
+        
         [Header("Jump")]
         [SerializeField] float _jumpForce = 20f;
         [SerializeField] float _fallMultiplier = 8f;
         [SerializeField] float _hangTime = 0.05f;
 
-        [SerializeField] float _topRaycastLength;
-        [SerializeField] Vector3 _edgeRaycastOffset;
-        [SerializeField] Vector3 _innerRaycastOffset;
-        [SerializeField] LayerMask _groundLayer;
-        bool _canCornerCorrect;        
+        [Header("Test")]
+        [SerializeField] bool _isCornerCorrect;
+        
+        bool _canCornerCorrect;
         
         Rigidbody2D _rb;
         Vector2 _inputDirection;
         GroundChecker _groundChecker;
+        WallChecker _wallChecker;
         bool _jumpRequest;
         float _hangTimeCounter;
+        CornerCorrector _cornerCorrector;
 
         void Start()
         {
             _rb = GetComponent<Rigidbody2D>();
             _groundChecker = GetComponent<GroundChecker>();
+            _cornerCorrector = GetComponent<CornerCorrector>();
+            _wallChecker = GetComponent<WallChecker>();
         }
 
         void Update()
         {
             _inputDirection = new Vector2(Input.GetAxisRaw("Horizontal"), 0);
+
+            // ここ FixedUpdate に移動？
             _isGrounded = _groundChecker.IsGrounded();
+            _onWall = _wallChecker.OnWall();
 
             if (_isGrounded)
             {
@@ -68,11 +77,11 @@ namespace App.Scenes.Game
 
         void FixedUpdate()
         {
-            CheckCollisions();
+            _canCornerCorrect = _cornerCorrector.CheckCollisions();
             
             // 徐々に加速させる為、AddForce (ForceMode2D.Force) を使う
-            //_rb.AddForce(Vector2.right * (_inputDirection.x * _movementAcceleration));
-            _rb.velocity += (Vector2.right * (_inputDirection.x * _movementAcceleration)) * Time.fixedDeltaTime / _rb.mass;
+            // _rb.AddForce(Vector2.right * (_inputDirection.x * _movementAcceleration));
+            _rb.velocity += (Vector2.right * (_inputDirection.x * _movementAcceleration)) * Time.deltaTime / _rb.mass;
             
             // 最高速に到達したら速度を保つ
             if (Mathf.Abs(_rb.velocity.x) > _maxMoveSpeed)
@@ -111,11 +120,20 @@ namespace App.Scenes.Game
             // }
 
 
-            if (_canCornerCorrect)
+            if (_canCornerCorrect && !_isGrounded)
             {
-                CornerCorrect(_rb.velocity.y);
+                if (!_isCornerCorrect)
+                    return;
+
+                // ここ position いじってるけど外部でやっていい？
+                _cornerCorrector.CornerCorrect();
             }
-            
+
+            // Wall Slide
+            if (_onWall && !_isGrounded && _rb.velocity.y < 0f)
+            {
+                _rb.gravityScale = 2;
+            }
             
             // 独自の重力処理
             // velocity += Vector2.up * (Physics.gravity.y * Time.deltaTime);
@@ -123,44 +141,6 @@ namespace App.Scenes.Game
             _rb.velocity = velocity;
             
             UpdateDebugTexts();
-        }
-
-        void CornerCorrect(float yVelocity)
-        {
-            // Push player to the right
-            var hit = Physics2D.Raycast(transform.position - _innerRaycastOffset + Vector3.up * _topRaycastLength,
-                Vector3.left, _topRaycastLength, _groundLayer);
-            if (hit.collider != null)
-            {
-                var newPos = Vector3.Distance(
-                    new Vector3(hit.point.x, transform.position.y, 0f) + Vector3.up * _topRaycastLength,
-                    transform.position - _edgeRaycastOffset + Vector3.up * _topRaycastLength);
-                transform.position = new Vector3(transform.position.x + newPos, transform.position.y,
-                    transform.position.z);
-                _rb.velocity = new Vector2(_rb.velocity.x, yVelocity);
-            }
-
-            // Push player to the left
-            hit = Physics2D.Raycast(transform.position + _innerRaycastOffset + Vector3.up * _topRaycastLength,
-                Vector3.right, _topRaycastLength, _groundLayer);
-            if (hit.collider != null)
-            {
-                var newPos = Vector3.Distance(
-                    new Vector3(hit.point.x, transform.position.y, 0f) + Vector3.up * _topRaycastLength,
-                    transform.position + _edgeRaycastOffset + Vector3.up * _topRaycastLength);
-                transform.position = new Vector3(transform.position.x - newPos, transform.position.y,
-                    transform.position.z);
-                _rb.velocity = new Vector2(_rb.velocity.x, yVelocity);
-            }
-        }
-
-        void CheckCollisions()
-        {
-            _canCornerCorrect =
-                Physics2D.Raycast(transform.position + _edgeRaycastOffset, Vector2.up, _topRaycastLength, _groundLayer) &&
-                !Physics2D.Raycast(transform.position + _innerRaycastOffset, Vector2.up, _topRaycastLength, _groundLayer) ||
-                Physics2D.Raycast(transform.position - _edgeRaycastOffset, Vector2.up, _topRaycastLength, _groundLayer) &&
-                !Physics2D.Raycast(transform.position - _innerRaycastOffset, Vector2.up, _topRaycastLength, _groundLayer);
         }
 
         void UpdateDebugTexts()
