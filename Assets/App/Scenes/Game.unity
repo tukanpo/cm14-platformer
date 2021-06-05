@@ -1512,7 +1512,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1189211490}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.10510095, y: 1.5484005, z: -10}
+  m_LocalPosition: {x: -0.10510095, y: 1.5483996, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 586783040}
@@ -1743,7 +1743,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1392291746}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.10510095, y: 1.5484005, z: -10}
+  m_LocalPosition: {x: -0.10510095, y: 1.5483996, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 2104801381}
@@ -2078,11 +2078,10 @@ MonoBehaviour:
   _isGrounded: 0
   _onWall: 0
   _jumpForce: 28
-  _fallMultiplier: 1.8
+  _jumpFallMultiplier: 1.8
   _hangTime: 0.08
-  _isCornerCorrect: 1
   _wallSlideDeceleration: 0.8
-  _wallSlideTime: 0
+  _isCornerCorrect: 1
 --- !u!61 &1599876367
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -2969,7 +2968,7 @@ MonoBehaviour:
   m_ScreenY: 0.5
   m_CameraDistance: 10
   m_DeadZoneWidth: 0.16
-  m_DeadZoneHeight: 0.4
+  m_DeadZoneHeight: 0.35
   m_DeadZoneDepth: 0
   m_UnlimitedSoftZone: 0
   m_SoftZoneWidth: 0.8
