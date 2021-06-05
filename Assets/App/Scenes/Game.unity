@@ -513,7 +513,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f1aef172a552fa74c98da9aa2a2272eb, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -1361,7 +1361,7 @@ Rigidbody2D:
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: f1aef172a552fa74c98da9aa2a2272eb, type: 2}
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
@@ -2078,9 +2078,10 @@ MonoBehaviour:
   _isGrounded: 0
   _onWall: 0
   _jumpForce: 28
-  _fallMultiplier: 8
+  _fallMultiplier: 1.8
   _hangTime: 0.08
   _isCornerCorrect: 1
+  _wallSlideDeceleration: 0.8
   _wallSlideTime: 0
 --- !u!61 &1599876367
 BoxCollider2D:

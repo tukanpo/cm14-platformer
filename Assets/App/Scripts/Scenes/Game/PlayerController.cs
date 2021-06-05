@@ -16,10 +16,8 @@ namespace App.Scenes.Game
         [SerializeField] float _maxMoveSpeed = 7f;
         [SerializeField] float _movementDeceleration = 8f;
 
-        [Header("Ground Check")]
+        [Header("Collision Check")]
         [SerializeField] public bool _isGrounded;
-
-        [Header("Wall Checker")]
         [SerializeField] public bool _onWall;
         
         [Header("Jump")]
@@ -30,6 +28,7 @@ namespace App.Scenes.Game
         [Header("Test")]
         [SerializeField] bool _isCornerCorrect;
 
+        [SerializeField] float _wallSlideDeceleration;
         [SerializeField] float _wallSlideTime = 1f;
         
         bool _canCornerCorrect;
@@ -42,9 +41,12 @@ namespace App.Scenes.Game
         GroundChecker _groundChecker;
         CornerCorrector _cornerCorrector;
         WallChecker _wallChecker;
-        
-        float _gravityScaleModifier;
 
+        float _jumpFallGravityMultiplier;
+        float _wallSlideGravityMultiplier;
+
+        bool _isJumping;
+        bool _isWallSliding;
         float _wallSlideTimeCounter;
 
         void Start()
@@ -80,8 +82,6 @@ namespace App.Scenes.Game
             _canCornerCorrect = _cornerCorrector.CheckCollisions();
             _onWall = _wallChecker.OnWall();
 
-            _gravityScaleModifier = 1;
-
             velocity = Move(velocity);
             velocity = Jump(velocity);
             velocity = WallSlide(velocity);
@@ -115,9 +115,12 @@ namespace App.Scenes.Game
 
         Vector2 Jump(Vector2 velocity)
         {
+            _jumpFallGravityMultiplier = 1;
+            
             // ジャンプ！
             if (_isGrounded)
             {
+                _isJumping = false;
                 _hangTimeCounter = _hangTime;
             }
             else
@@ -131,19 +134,22 @@ namespace App.Scenes.Game
                 velocity += Vector2.up * _jumpForce;
                 _hangTimeCounter = 0;
                 _jumpRequest = false;
+                _isJumping = true;
             }
 
-            // if (!_isGrounded)
-            // {
-            //     if (_rb.velocity.y < 0)
-            //     {
-            //         // ジャンプからの落下中は落下用重力を適用
-            //         velocity += Vector2.up * (Physics.gravity.y * _fallMultiplier * Time.deltaTime);
-            //     }
-            // }
+            if (!_isJumping)
+            {
+                return velocity;
+            }
+
+            if (velocity.y < 0)
+            {
+                // ジャンプからの落下中は落下用重力を適用
+                _jumpFallGravityMultiplier = _fallMultiplier;
+            }
 
             // コーナーでの位置補正
-            if (_canCornerCorrect && !_isGrounded)
+            if (_canCornerCorrect)
             {
                 if (_isCornerCorrect)
                 {
@@ -157,10 +163,25 @@ namespace App.Scenes.Game
 
         Vector2 WallSlide(Vector2 velocity)
         {
+            // スライドは地面に着くまでに一回だけ？
+            //      ジャンプでリセットする？
+
             if (_onWall && !_isGrounded && velocity.y < 0f)
             {
-                velocity = new Vector2(velocity.x, 0);
-                _gravityScaleModifier = 0.5f;
+                if (!_isWallSliding)
+                {
+                    _isWallSliding = true;
+                    _wallSlideGravityMultiplier = 0;
+                    velocity = new Vector2(velocity.x, 0);
+                }
+                
+                // TODO: カーブ適用したい
+                _wallSlideGravityMultiplier = Mathf.Clamp01(_wallSlideGravityMultiplier + _wallSlideDeceleration * Time.deltaTime);
+            }
+            else
+            {
+                _isWallSliding = false;
+                _wallSlideGravityMultiplier = 1f;
             }
 
             return velocity;
@@ -168,14 +189,22 @@ namespace App.Scenes.Game
 
         Vector2 ApplyGravity(Vector2 velocity)
         {
-            return velocity + Vector2.up * (Physics.gravity.y * (_gravityScale * _gravityScaleModifier) * Time.deltaTime);
+            var multiplier = _jumpFallGravityMultiplier *
+                             _wallSlideGravityMultiplier;
+
+            // デバッグ用
+            _finalGravityScale = multiplier;
+            
+            return velocity + Vector2.up * (Physics.gravity.y * _gravityScale * multiplier * Time.deltaTime);
         }
+
+        float _finalGravityScale;
 
         void UpdateDebugTexts()
         {
             _velocityText.text = $"{_rb.velocity}";
             _hangtimeText.text = $"{_hangTimeCounter}";
-            _gravityScaleText.text = $"{_gravityScale * _gravityScaleModifier}";
+            _gravityScaleText.text = $"{_finalGravityScale}";
         }
     }
 }
