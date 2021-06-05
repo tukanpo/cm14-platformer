@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace App.Scenes.Game
@@ -9,6 +10,7 @@ namespace App.Scenes.Game
         [SerializeField] Text _hangtimeText;
         [SerializeField] Text _gravityScaleText;
 
+        [Header("Gravity")]
         [SerializeField] float _gravityScale = 8.5f;
         
         [Header("Movement")]
@@ -22,14 +24,15 @@ namespace App.Scenes.Game
         
         [Header("Jump")]
         [SerializeField] float _jumpForce = 20f;
-        [SerializeField] float _fallMultiplier = 8f;
+        [SerializeField] float _jumpFallMultiplier = 8f;
         [SerializeField] float _hangTime = 0.05f;
+
+        [Header("WallSlide")]
+        [SerializeField] float _wallSlideDeceleration;
 
         [Header("Test")]
         [SerializeField] bool _isCornerCorrect;
 
-        [SerializeField] float _wallSlideDeceleration;
-        [SerializeField] float _wallSlideTime = 1f;
         
         bool _canCornerCorrect;
         
@@ -144,8 +147,8 @@ namespace App.Scenes.Game
 
             if (velocity.y < 0)
             {
-                // ジャンプからの落下中は落下用重力を適用
-                _jumpFallGravityMultiplier = _fallMultiplier;
+                // ジャンプからの落下中は専用重力を適用
+                _jumpFallGravityMultiplier = _jumpFallMultiplier;
             }
 
             // コーナーでの位置補正
