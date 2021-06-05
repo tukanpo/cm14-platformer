@@ -13,7 +13,7 @@ namespace App.Scenes.Game
         [SerializeField] GameObject _playerShadow1;
         [SerializeField] GameObject _playerShadow2;
 
-        // 注意：コライダーが壁に接触する前に検知しないといけないのでセンサーを先に充てる
+        // 注意：コライダーが壁に接触する前に検知しないといけないのでセンサーを先に当てる
         // あとジャンプ中かどうか？とか予測が必要かも…？
         // ジャンプ時間とかカーブとか考えないといけないかも？
         // 近すぎる天井対策はジャンプ直後にも補正すればいいんじゃない？
@@ -52,8 +52,7 @@ namespace App.Scenes.Game
                 return;
             }
 
-            hit = Physics2D.Raycast(
-                position + _innerRaycastOffset + Vector3.up * _topRaycastLength,
+            hit = Physics2D.Raycast(position + _innerRaycastOffset + Vector3.up * _topRaycastLength,
                 Vector3.right, _topRaycastLength, _cornerCorrectLayer);
             if (hit.collider)
             {

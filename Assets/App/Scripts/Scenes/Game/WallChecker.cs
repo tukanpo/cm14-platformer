@@ -6,29 +6,29 @@ namespace App.Scenes.Game
     {
         [SerializeField] LayerMask _wallLayer;
         [SerializeField] float _wallRaycastLength;
-
-        bool _onWall;
-        bool _onRightWall;
-        
-        public bool CheckCollisions()
-        {
-            _onWall = Physics2D.Raycast(transform.position, Vector2.right, _wallRaycastLength, _wallLayer) ||
-                      Physics2D.Raycast(transform.position, Vector2.left, _wallRaycastLength, _wallLayer);
-            _onRightWall = Physics2D.Raycast(transform.position, Vector2.right, _wallRaycastLength, _wallLayer);
-
-            return true;
-        }
-
+        [SerializeField] Vector3 _wallRaycastOffset;
+            
         public bool OnWall()
         {
-            return Physics2D.Raycast(transform.position, Vector2.right, _wallRaycastLength, _wallLayer) ||
-                   Physics2D.Raycast(transform.position, Vector2.left, _wallRaycastLength, _wallLayer);
+            return OnLeftWall() || OnRightWall();
+        }
+
+        public bool OnLeftWall()
+        {
+            return Physics2D.Raycast(transform.position, Vector2.left, _wallRaycastLength, _wallLayer);
+        }
+
+        public bool OnRightWall()
+        {
+            return Physics2D.Raycast(transform.position, Vector2.right, _wallRaycastLength, _wallLayer);
         }
 
         void OnDrawGizmos()
         {
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.right * _wallRaycastLength);
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.left * _wallRaycastLength);
+            Gizmos.color = Color.red;
+            var position = transform.position;
+            Gizmos.DrawLine(position + _wallRaycastOffset, position + _wallRaycastOffset + Vector3.right * _wallRaycastLength);
+            Gizmos.DrawLine(position + _wallRaycastOffset, position + _wallRaycastOffset + Vector3.left * _wallRaycastLength);
         }
     }
 }

@@ -7,6 +7,9 @@ namespace App.Scenes.Game
     {
         [SerializeField] Text _velocityText;
         [SerializeField] Text _hangtimeText;
+        [SerializeField] Text _gravityScaleText;
+
+        [SerializeField] float _gravityScale = 8.5f;
         
         [Header("Movement")]
         [SerializeField] float _movementAcceleration = 15f;
@@ -26,16 +29,23 @@ namespace App.Scenes.Game
 
         [Header("Test")]
         [SerializeField] bool _isCornerCorrect;
+
+        [SerializeField] float _wallSlideTime = 1f;
         
         bool _canCornerCorrect;
         
         Rigidbody2D _rb;
         Vector2 _inputDirection;
-        GroundChecker _groundChecker;
-        WallChecker _wallChecker;
         bool _jumpRequest;
         float _hangTimeCounter;
+
+        GroundChecker _groundChecker;
         CornerCorrector _cornerCorrector;
+        WallChecker _wallChecker;
+        
+        float _gravityScaleModifier;
+
+        float _wallSlideTimeCounter;
 
         void Start()
         {
@@ -49,18 +59,6 @@ namespace App.Scenes.Game
         {
             _inputDirection = new Vector2(Input.GetAxisRaw("Horizontal"), 0);
 
-            // ここ FixedUpdate に移動？
-            _isGrounded = _groundChecker.IsGrounded();
-            _onWall = _wallChecker.OnWall();
-
-            if (_isGrounded)
-            {
-                _hangTimeCounter = _hangTime;
-            }
-            else
-            {
-                _hangTimeCounter -= Time.deltaTime;
-            }
             
             if (Input.GetButtonDown("Jump") && _hangTimeCounter > 0f)
             {
@@ -77,11 +75,13 @@ namespace App.Scenes.Game
 
         void FixedUpdate()
         {
+            _isGrounded = _groundChecker.IsGrounded();
             _canCornerCorrect = _cornerCorrector.CheckCollisions();
-            
-            // 徐々に加速させる為、AddForce (ForceMode2D.Force) を使う
+            _onWall = _wallChecker.OnWall();
+
+            // 徐々に加速して移動
             // _rb.AddForce(Vector2.right * (_inputDirection.x * _movementAcceleration));
-            _rb.velocity += (Vector2.right * (_inputDirection.x * _movementAcceleration)) * Time.deltaTime / _rb.mass;
+            _rb.velocity += Vector2.right * (_inputDirection.x * _movementAcceleration * Time.deltaTime) / _rb.mass;
             
             // 最高速に到達したら速度を保つ
             if (Mathf.Abs(_rb.velocity.x) > _maxMoveSpeed)
@@ -90,9 +90,18 @@ namespace App.Scenes.Game
                 _rb.velocity = new Vector2(Mathf.Sign(_rb.velocity.x) * _maxMoveSpeed, _rb.velocity.y);
             }
 
+            // ジャンプ！
+            if (_isGrounded)
+            {
+                _hangTimeCounter = _hangTime;
+            }
+            else
+            {
+                _hangTimeCounter -= Time.deltaTime;
+            }
+
             if (_jumpRequest)
             {
-                // ジャンプ！
                 _rb.velocity = new Vector2(_rb.velocity.x, 0);
                 _rb.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
                 _hangTimeCounter = 0;
@@ -119,7 +128,7 @@ namespace App.Scenes.Game
             //     }
             // }
 
-
+            // コーナーでのジャンプ補正
             if (_canCornerCorrect && !_isGrounded)
             {
                 if (!_isCornerCorrect)
@@ -129,14 +138,17 @@ namespace App.Scenes.Game
                 _cornerCorrector.CornerCorrect();
             }
 
+            _gravityScaleModifier = 1;
+            
             // Wall Slide
             if (_onWall && !_isGrounded && _rb.velocity.y < 0f)
             {
-                _rb.gravityScale = 2;
+                velocity = new Vector2(velocity.x, 0);
+                _gravityScaleModifier = 0.5f;
             }
-            
-            // 独自の重力処理
-            // velocity += Vector2.up * (Physics.gravity.y * Time.deltaTime);
+
+            // 重力処理
+            velocity += Vector2.up * (Physics.gravity.y * (_gravityScale * _gravityScaleModifier) * Time.deltaTime);
 
             _rb.velocity = velocity;
             
@@ -147,6 +159,7 @@ namespace App.Scenes.Game
         {
             _velocityText.text = $"{_rb.velocity}";
             _hangtimeText.text = $"{_hangTimeCounter}";
+            _gravityScaleText.text = $"{_gravityScale * _gravityScaleModifier}";
         }
     }
 }

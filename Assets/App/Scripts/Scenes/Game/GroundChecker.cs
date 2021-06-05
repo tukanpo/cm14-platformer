@@ -6,21 +6,25 @@ namespace App.Scenes.Game
     {
         [SerializeField] LayerMask _groundLayer;
         [SerializeField] Vector2 _boxSize;
-        [SerializeField] float _boxOffsetY;
-
+        [SerializeField] Collider2D _collider;
+        
+        RaycastHit2D _hit;
+        
         public bool IsGrounded()
         {
-            var position = transform.position;
-            return Physics2D.OverlapBox(
-                new Vector2(position.x, position.y + _boxOffsetY),
-                _boxSize, 0, _groundLayer);
+            var bounds = _collider.bounds;
+            _hit = Physics2D.BoxCast(bounds.center, bounds.size, 0, Vector2.down, 0.1f, _groundLayer);
+            return _hit;
         }
         
         void OnDrawGizmos()
         {
             Gizmos.color = Color.red;
-            var position = transform.position;
-            Gizmos.DrawWireCube(new Vector2(position.x, position.y + _boxOffsetY), _boxSize);
+
+            if (_hit.collider)
+            {
+                 Gizmos.DrawWireCube(_hit.point, _boxSize);
+            }
         }
     }
 }
