@@ -2161,7 +2161,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   _wallRaycastLength: 0.65
-  _wallRaycastOffset: {x: 0, y: 0.39, z: 0}
+  _wallRaycastOffset: {x: 0, y: 0.57, z: 0}
 --- !u!1 &1757277089
 GameObject:
   m_ObjectHideFlags: 0

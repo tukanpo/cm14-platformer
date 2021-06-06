@@ -15,12 +15,12 @@ namespace App.Scenes.Game
 
         public bool OnLeftWall()
         {
-            return Physics2D.Raycast(transform.position, Vector2.left, _wallRaycastLength, _wallLayer);
+            return Physics2D.Raycast(transform.position + _wallRaycastOffset, Vector2.left, _wallRaycastLength, _wallLayer);
         }
 
         public bool OnRightWall()
         {
-            return Physics2D.Raycast(transform.position, Vector2.right, _wallRaycastLength, _wallLayer);
+            return Physics2D.Raycast(transform.position + _wallRaycastOffset, Vector2.right, _wallRaycastLength, _wallLayer);
         }
 
         void OnDrawGizmos()
