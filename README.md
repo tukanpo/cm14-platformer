@@ -8,7 +8,7 @@ Unity 2020.3
 
   物理演算に影響されない動作を行う為に Rigidbody の Gravity はオフ
 
-  Rigidbody は当たり判定と velocity の為に使用
+  Rigidbody は衝突処理と velocity の為に使用
 
 - 慣性付き移動
 
