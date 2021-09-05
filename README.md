@@ -1,8 +1,8 @@
-2D Player Controller の移動系動作サンプル
+## 2D Player Controller の移動系動作サンプル
 
 Unity 2020.3
 
-作りかけ＆リファクタしてない
+ほぼ[これ](https://github.com/tukanpo/cm14-platformer/blob/master/Assets/App/Scripts/Scenes/Game/PlayerController.cs)がすべて
 
 - velocity で制御
 
@@ -22,7 +22,7 @@ Unity 2020.3
 
   スーパーマリオの時代からあるやつ
 
-- HangTime (Coyote time)
+- Hangtime (Coyote time)
 
   地面から落ちた瞬間は空中でもジャンプ可能にする
 
