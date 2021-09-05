@@ -2,7 +2,7 @@
 
 Unity 2020.3
 
-ほぼ[これ](https://github.com/tukanpo/cm14-platformer/blob/master/Assets/App/Scripts/Scenes/Game/PlayerController.cs)がすべて
+ほぼ [これ](https://github.com/tukanpo/cm14-platformer/blob/master/Assets/App/Scripts/Scenes/Game/PlayerController.cs) がすべて。後はセンサー用のコンポーネント
 
 - velocity で制御
 
